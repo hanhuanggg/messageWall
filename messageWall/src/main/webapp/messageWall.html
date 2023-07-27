@@ -108,7 +108,7 @@
                 input.value='';
             }
 
-           4//给服务器发起post请求,把数据储存到服务器上
+           //给服务器发起post请求,把数据储存到服务器上
            let body={
             from:from,
             to:to,
@@ -138,7 +138,8 @@
                 return;
             }
             containerDiv.removeChild(rows[rows.length-1]);
-        }
+
+       }
 
         //页面加载是,发送get请求,从服务器获取导数据并添加到页面中
         $.ajax({
@@ -149,7 +150,7 @@
                 for(let message of body){
                     let rowDiv=document.createElement('div');
                     rowDiv.classname='row message';
-                    rowDiv.innerHTML=message.from+" 对 "+message.to+" 说: "+message.message;
+                    rowDiv.innerHTML=message.from+" 对 "+message.to+" 说: "+message.msg;
                     containerDiv.appendChild(rowDiv);
                 }
             }

@@ -44,4 +44,5 @@ public class MessageWallServlet extends HttpServlet{
         resp.setContentType("application/json;charset=utf8");
         objectMapper.writeValue(resp.getWriter(),messageList);
     }
+
 }
