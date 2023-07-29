@@ -7,6 +7,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,9 +35,9 @@ public class MessageWallServlet extends HttpServlet{
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Message msg=objectMapper.readValue(req.getInputStream(),Message.class);
 
-        System.out.println(msg.from+msg.msg+msg.to);
+        System.out.println(msg.from+msg.to+msg.from);
 
-        messageList.add(msg);
+        save(msg);
         resp.setStatus(200);
     }
 
@@ -42,7 +46,59 @@ public class MessageWallServlet extends HttpServlet{
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json;charset=utf8");
+        messageList=load();
         objectMapper.writeValue(resp.getWriter(),messageList);
     }
 
+    //往数据库里面储存信息
+    Connection connection=null;
+    PreparedStatement statement=null;
+
+    ResultSet resultSet=null;
+    protected void save(Message message){
+        try {
+            //1.建立连接
+           connection= DBUtil.getConnection();
+            //2.写陈述语句
+            String sql="insert into message values(?,?,?);";
+             statement=connection.prepareStatement(sql);
+            statement.setString(1,message.from);
+            statement.setString(2,message.to);
+            statement.setString(3,message.msg);
+            //3.执行sql语句
+            statement.executeUpdate();
+        } catch (SQLException e) {
+         e.printStackTrace();
+        }finally {
+            //4.断开连接
+            DBUtil.close(connection,statement,null);
+        }
+    }
+
+    //从数据库获得信息
+    protected List<Message> load(){
+        try {
+            //1.建立连接
+            connection=DBUtil.getConnection();
+            //2.sql语句
+            String sql="select * from message;";
+            statement=connection.prepareStatement(sql);
+            //3.执行sql语句
+           resultSet=statement.executeQuery();
+           //4.将resultSet里面的数据拿出来存到数组里面
+            List<Message> list=new ArrayList<>();
+            Message message=new Message();
+            while(resultSet.next()){
+                message.from=resultSet.getString("from");
+                message.to=resultSet.getString("to");
+                message.msg=resultSet.getString("msg");
+                list.add(message);
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            DBUtil.close(connection,statement,resultSet);
+        }
+    }
 }
